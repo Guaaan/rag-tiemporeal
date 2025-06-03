@@ -109,27 +109,24 @@ async def setup_openai_realtime(system_prompt: str):
     cl.user_session.set("openai_realtime", openai_realtime)
     await asyncio.gather(*[openai_realtime.add_tool(tool_def, tool_handler) for tool_def, tool_handler in tools])
 
-
+@cl.auth_callback
+def auth_callback():
+    # Opción 1: Deshabilitar autenticación
+    return cl.User(identifier="guest")
 
 @cl.oauth_callback
-def oauth_callback(
-    provider_id: str,  # ID of the OAuth provider (GitHub)
-    token: str,  # OAuth access token
-    raw_user_data: Dict[str, str],  # User data from GitHub
-    default_user: cl.User,  # Default user object from Chainlit
-) -> Optional[cl.User]:  # Return User object or None
-    """
-    Handle the OAuth callback from GitHub
-    Return the user object if authentication is successful, None otherwise
-    """
-
-    print(f"Provider: {provider_id}")  # Print provider ID for debugging
-    print(f"User data: {raw_user_data}")  # Print user data for debugging
-
-    return default_user  # Return the default user object
-
-
-
+def oauth_callback(provider_id, token, raw_user_data, default_user):
+    try:
+        result = msal_app.acquire_token_by_authorization_code(
+            token,
+            scopes=SCOPES,
+            redirect_uri=REDIRECT_URI)
+        
+        if "access_token" in result:
+            return cl.User(identifier=result.get("id_token_claims", {}).get("preferred_username"))
+    except Exception as e:
+        print(f"Authentication error: {e}")
+    return None
 
 @cl.on_chat_start
 async def on_chat_start():
