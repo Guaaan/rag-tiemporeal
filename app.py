@@ -11,12 +11,15 @@ from azure_tts import Client as AzureTTSClient
 from tools import search_knowledge_base_handler, report_grounding_handler, tools
 from msal import ConfidentialClientApplication
 from typing import Optional, Dict
+from dotenv import load_dotenv
+load_dotenv()
 
 AZURE_CLIENT_ID = os.environ.get("AZURE_CLIENT_ID")
 AZURE_TENANT_ID = os.environ.get("AZURE_TENANT_ID")
 AZURE_CLIENT_SECRET = os.environ.get("AZURE_CLIENT_SECRET")
 AUTHORITY = f"https://login.microsoftonline.com/{AZURE_TENANT_ID}"
 SCOPES = ["User.Read"]
+REDIRECT_URI = os.environ.get("REDIRECT_URI", "https://itamrealtime.eastus2.cloudapp.azure.com")
 
 msal_app = ConfidentialClientApplication(
     AZURE_CLIENT_ID,
@@ -213,7 +216,7 @@ def on_logout(request: str, response: str):
     # auth_result.clear()  # Descomenta si usas auth_result para almacenar el token
     # Cerrar sesión en Azure AD
     tenant_id = AZURE_TENANT_ID
-    redirect_uri = "http://localhost:8500/"  # Cambia esto si necesitas otro redirect
+    redirect_uri = REDIRECT_URI  # Cambia esto si necesitas otro redirect
     logout_url = f"https://login.microsoftonline.com/{tenant_id}/oauth2/v2.0/logout?post_logout_redirect_uri={redirect_uri}"
     import webbrowser
     webbrowser.open(logout_url)
