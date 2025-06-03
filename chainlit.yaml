@@ -1,0 +1,21 @@
+chainlit: 2.0.0
+
+# Interface settings
+ui:
+  name: "Itam Chatbot"
+  description: "A simple Question Answering Stateful chatbot with GitHub authentication built with Python, UV, and Chainlit."
+
+# Message settings
+default_expand_messages: true
+
+# Auth settings
+auth:
+  required: true
+  providers: 
+    - azure
+
+# OAuth Configuration
+oauth_providers:
+  azure:
+    client_id: ${OAUTH_AZURE_AD_CLIENT_ID}
+    client_secret: ${OAUTH_AZURE_AD_CLIENT_SECRET} 
