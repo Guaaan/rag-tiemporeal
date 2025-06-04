@@ -109,11 +109,6 @@ async def setup_openai_realtime(system_prompt: str):
     cl.user_session.set("openai_realtime", openai_realtime)
     await asyncio.gather(*[openai_realtime.add_tool(tool_def, tool_handler) for tool_def, tool_handler in tools])
 
-@cl.auth_callback
-def auth_callback():
-    # Opción 1: Deshabilitar autenticación
-    return cl.User(identifier="guest")
-
 @cl.oauth_callback
 def oauth_callback(provider_id, token, raw_user_data, default_user):
     try:
