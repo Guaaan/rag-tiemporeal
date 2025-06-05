@@ -19,7 +19,7 @@ AZURE_TENANT_ID = os.environ.get("AZURE_TENANT_ID")
 AZURE_CLIENT_SECRET = os.environ.get("AZURE_CLIENT_SECRET")
 AUTHORITY = f"https://login.microsoftonline.com/{AZURE_TENANT_ID}"
 SCOPES = ["User.Read"]
-REDIRECT_URI = os.environ.get("REDIRECT_URI", "https://itamrealtime.eastus2.cloudapp.azure.com")
+REDIRECT_URI = os.environ.get("REDIRECT_URI", "https://itambotdevoz.eastus2.cloudapp.azure.com/auth/oauth/azure-ad/callback")
 
 msal_app = ConfidentialClientApplication(
     AZURE_CLIENT_ID,
