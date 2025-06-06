@@ -47,13 +47,13 @@ search_client = SearchClient(
 # Definición de herramientas
 search_tool_def = {
     "name": "search_knowledge_base",
-    "description": "Busca en la base de conocimientos en español sobre el ITAM. Proporciona información sobre la institución, su historia, misión, visión y valores. Además, se abordan temas relacionados con servicios disponibles.",
+    "description": "Busca en tu base de conocimientos en español información sobre ITAM (curriculum, clientes, proveedores, Contactos Emergencias, Direccion y telefono de contacto). El archivo ITAM.md te ayudará a responder preguntas generales relacionadas a ITAM.",
     "parameters": {
         "type": "object",
         "properties": {
             "query": {
                 "type": "string",
-                "description": "Consulta de búsqueda en español"
+                "description": "Consulta de búsqueda"
             }
         },
         "required": ["query"],
