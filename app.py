@@ -11,8 +11,6 @@ from azure_tts import Client as AzureTTSClient
 from tools import search_knowledge_base_handler, report_grounding_handler, tools
 from msal import ConfidentialClientApplication
 from typing import Optional, Dict
-from dotenv import load_dotenv
-load_dotenv()
 
 AZURE_CLIENT_ID = os.environ.get("AZURE_CLIENT_ID")
 AZURE_TENANT_ID = os.environ.get("AZURE_TENANT_ID")
@@ -109,19 +107,27 @@ async def setup_openai_realtime(system_prompt: str):
     cl.user_session.set("openai_realtime", openai_realtime)
     await asyncio.gather(*[openai_realtime.add_tool(tool_def, tool_handler) for tool_def, tool_handler in tools])
 
+
+
 @cl.oauth_callback
-def oauth_callback(provider_id, token, raw_user_data, default_user):
-    try:
-        result = msal_app.acquire_token_by_authorization_code(
-            token,
-            scopes=SCOPES,
-            redirect_uri=REDIRECT_URI)
-        
-        if "access_token" in result:
-            return cl.User(identifier=result.get("id_token_claims", {}).get("preferred_username"))
-    except Exception as e:
-        print(f"Authentication error: {e}")
-    return None
+def oauth_callback(
+    provider_id: str,  # ID of the OAuth provider (GitHub)
+    token: str,  # OAuth access token
+    raw_user_data: Dict[str, str],  # User data from GitHub
+    default_user: cl.User,  # Default user object from Chainlit
+) -> Optional[cl.User]:  # Return User object or None
+    """
+    Handle the OAuth callback from GitHub
+    Return the user object if authentication is successful, None otherwise
+    """
+
+    print(f"Provider: {provider_id}")  # Print provider ID for debugging
+    print(f"User data: {raw_user_data}")  # Print user data for debugging
+
+    return default_user  # Return the default user object
+
+
+
 
 @cl.on_chat_start
 async def on_chat_start():
@@ -208,7 +214,7 @@ def on_logout(request: str, response: str):
     # auth_result.clear()  # Descomenta si usas auth_result para almacenar el token
     # Cerrar sesión en Azure AD
     tenant_id = AZURE_TENANT_ID
-    redirect_uri = REDIRECT_URI  # Cambia esto si necesitas otro redirect
+    redirect_uri = REDIRECT_URI
     logout_url = f"https://login.microsoftonline.com/{tenant_id}/oauth2/v2.0/logout?post_logout_redirect_uri={redirect_uri}"
     import webbrowser
     webbrowser.open(logout_url)
