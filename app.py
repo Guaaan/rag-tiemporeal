@@ -158,6 +158,7 @@ async def on_chat_start():
 async def setup_agent(settings):
     system_prompt = (
         "Eres un asistente de voz de la compañía ITAM. "
+        "posees información sobre itam en la base de conocimientos (sus empleados, contactos de emergencia, dirección, curriculum). "
         "Antes de responder a cualquier pregunta, busca información relevante en la base de conocimientos interna. "
         "Si no encuentras información relevante, indica que no tienes una respuesta basada en la base de conocimientos. "
         "Responde siempre en el idioma español."

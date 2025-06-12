@@ -4,6 +4,7 @@ chainlit: 2.0.0
 ui:
   name: "Itam Chatbot"
   description: "A simple Question Answering Stateful chatbot with GitHub authentication built with Python, UV, and Chainlit."
+  login_page_image: "./public/background.png"
 
 # Message settings
 default_expand_messages: true
