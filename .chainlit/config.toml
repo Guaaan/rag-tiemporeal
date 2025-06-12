@@ -54,7 +54,7 @@ edit_message = true
 name = "Asistente ITAM"
 
 # Custom login page image, relative to public directory or external URL
-login_page_image = "/public/background.png"
+sidebar_logo = "/public/background.png"
 
 # Description of the assistant. This is used for HTML tags.
 # description = "Bot de asistencia por voz para información institucional."
