@@ -78,8 +78,7 @@ name = "Asistente ITAM"
 
 # Custom login page image, relative to public directory or external URL
 sidebar_logo = "/public/background.png"
-
-# default_theme = "light"
+default_theme = "light"
 
 # layout = "wide"
 
