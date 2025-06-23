@@ -5,6 +5,8 @@ project_id = "realtime_chatbot"
 enable_telemetry = true
 chatbot_name = "Asistente ITAM"
 
+
+
 [auth]
 # Authentication configuration.
 # If you want to use authentication, set this to true.
@@ -73,16 +75,42 @@ edit_message = true
     allowed_executables = [ "npx", "uvx" ]
 
 [UI]
+
 # Name of the assistant.
 name = "Asistente ITAM"
-
+translation = "es-ES"
 # Custom login page image, relative to public directory or external URL
 sidebar_logo = "/public/background.png"
+# Custom login page image, relative to public directory or external URL
+login_page_image = "https://www.itam.cl/data1/images/3.jpg"
 default_theme = "light"
 
-# layout = "wide"
+[UI.theme]
+    default = "light"
 
-# default_sidebar_state = "collapsed"
+    # Override default MUI light theme. (Check theme.ts)
+    [UI.theme.light]
+        #background = "#FAFAFA"
+        #paper = "#FFFFFF"
+
+        [UI.theme.light.primary]
+            main = "210 100% 50%"  # Azul
+            dark = "210 100% 40%"  # Azul oscuro
+            light = "195 100% 90%" # Celeste claro
+
+    # Override default MUI dark theme. (Check theme.ts)
+    [UI.theme.dark]
+        #background = "#FAFAFA"
+        #paper = "#FFFFFF"
+
+        [UI.theme.dark.primary]
+            main = "195 100% 50%"  # Celeste
+            dark = "195 100% 40%"  # Celeste oscuro
+            light = "210 100% 90%" # Azul claro
+
+layout = "wide"
+
+default_sidebar_state = "collapsed"
 
 # Description of the assistant. This is used for HTML tags.
 # description = ""
@@ -99,8 +127,7 @@ custom_css = "/public/test.css"
 # The Javascript file can be served from the public directory.
 # custom_js = "/public/script.js"
 
-# Custom login page image, relative to public directory or external URL
-login_page_image = "https://www.itam.cl/data1/images/3.jpg"
+
 
 # Custom login page image filter (Tailwind internal filters, no dark/light variants)
 # login_page_image_filter = "brightness-50 grayscale"
