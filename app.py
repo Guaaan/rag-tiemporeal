@@ -133,7 +133,7 @@ def oauth_callback(
 async def on_chat_start():
 
     # Continua con el resto de tu lógica: Azure, TTS, agente, etc.
-    await cl.Message("¡Todo listo! ¿En qué te puedo ayudar?").send()
+    # await cl.Message("¡Todo listo! ¿En qué te puedo ayudar?").send()
     app_user = cl.user_session.get("user")
     print("app_user", app_user)
 
@@ -161,16 +161,17 @@ async def on_chat_start():
 async def setup_agent(settings):
     system_prompt = (
         "Eres un asistente de voz de la compañía ITAM. "
-        "posees información sobre itam en la base de conocimientos (sus empleados, contactos de emergencia, dirección, curriculum). "
-        "Antes de responder a cualquier pregunta, busca información relevante en la base de conocimientos interna. "
-        "Si no encuentras información relevante, indica que no tienes una respuesta basada en la base de conocimientos. "
-        "Responde siempre en el idioma español."
+        "Tienes acceso a la base de conocimientos interna, incluyendo empleados, contactos de emergencia, dirección y currículum. "
+        "Antes de responder a cualquier pregunta, busca información relevante en la base de conocimientos. "
+        "Si no encuentras información relevante, indícalo. "
+        "Responde siempre en español. "
+        "Si el usuario solicita realizar una llamada a un contacto de emergencia, puedes gestionarla automáticamente."
     )
     cl.user_session.set("useAzureVoice", settings["useAzureVoice"])
     cl.user_session.set("Temperature", settings["Temperature"])
     cl.user_session.set("Language", settings["Language"])
     await cl.Message(
-        content="Hola Bienvenido al bot conversacional de ITAM. Puedo brindarte información sobre los contactos de emergencia de algún empleado o información general de la compañía. Presiona `P` para hablar! Prueba preguntarme cual es el contacto de emergencias o la dirección de la compañía."
+        content="Hola Bienvenido al bot conversacional de ITAM. Puedo brindarte información sobre los contactos de emergencia de algún empleado o información general de la compañía. Presiona `P` para hablar! Prueba preguntarme cual es el contacto de emergencias de un empleado. "
     ).send()
     system_prompt = system_prompt.replace(
         "<customer_language>", settings["Language"])

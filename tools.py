@@ -1,5 +1,4 @@
 import os
-import re
 import logging
 import requests
 from dotenv import load_dotenv
@@ -7,14 +6,15 @@ from azure.core.credentials import AzureKeyCredential
 from azure.search.documents.aio import SearchClient
 from azure.search.documents.models import VectorizableTextQuery
 from typing import Dict, Any, List
+import re
+import time
+import json
 
 # Cargar variables de entorno
 load_dotenv()
 
 # Configuración de Net2Phone
 NET2PHONE_CLIENT_ID = os.getenv("NET2PHONE_CLIENT_ID")
-NET2PHONE_CLIENT_SECRET = os.getenv("NET2PHONE_CLIENT_SECRET")
-NET2PHONE_API_KEY = os.getenv("NET2PHONE_API_KEY")
 NET2PHONE_API_BASE_URL = os.getenv("NET2PHONE_API_BASE_URL", "https://api.n2p.io")
 
 # Configuración de búsqueda en Azure Search
