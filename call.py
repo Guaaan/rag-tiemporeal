@@ -1,32 +1,67 @@
-import http.client
-import json
-import os
-from dotenv import load_dotenv
+import requests
 
-# Cargar variables de entorno desde el archivo .env
-load_dotenv()
+# — Paso 1: Obtener token —
 
-VN_SERVER_ADDRESS = os.getenv('VN_SERVER_ADDRESS')
-APP_KEY = os.getenv('APP_KEY')
-APP_SECRET = os.getenv('APP_SECRET')
-TYPE = os.getenv('TYPE', 'unifiedapi')
-REDIRECT_URI = f'https://{VN_SERVER_ADDRESS}/ouath/token.php'
-URI = f'https://{VN_SERVER_ADDRESS}/oauth/token.php'
 
-# Configurar los parámetros de la solicitud
-headers = {"Content-type": "application/x-www-form-urlencoded"}
-content = (
-    f"&client_id={APP_KEY}&client_secret={APP_SECRET}&grant_type=client_credentials&type={TYPE}&redirect_uri={REDIRECT_URI}"
-)
-conn = http.client.HTTPSConnection(VN_SERVER_ADDRESS)
-conn.request("POST", URI, content, headers)
+def get_token():
+    url = "https://api.n2p.io/v1/oauth/token/"
+    payload = {
+        "client_id": "6529351469236224",
+        "username": "admin.ITAM",
+        "password": "BxPH9kvQ",
+        "grant_type": "password"
+    }
+    headers = {
+        "Content-Type": "application/x-www-form-urlencoded",
+        "Accept": "application/json",
+        "Accept-Encoding": "gzip, deflate, br",
+        "User-Agent": (
+            "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
+            "AppleWebKit/537.36 (KHTML, like Gecko) "
+            "Chrome/124.0.0.0 Safari/537.36"
+        )
+    }
+    resp = requests.post(url, data=payload, headers=headers)
+    try:
+        resp.raise_for_status()
+    except requests.HTTPError as e:
+        print(f"❌ Error al obtener token: {e}")
+        print(f"Status code: {resp.status_code}")
+        print(f"Response: {resp.text}")
+        raise
+    return resp.json().get("access_token")
 
-# Procesar la respuesta JSON
-response = conn.getresponse()
-response_data = response.read().decode('utf-8')
-try:
-    print(json.dumps(json.loads(response_data), indent=4))
-except json.JSONDecodeError:
-    print('Respuesta no es JSON válido:')
-    print(response_data)
+# — Paso 2: Realizar llamada con bearer token —
 
+
+def make_call(access_token, from_number, to_number):
+    url = "https://api.n2p.io/v1/calls/"
+    headers = {
+        "Authorization": f"Bearer {access_token}",
+        'Content-Type': 'application/json; charset=utf-8',
+        "Accept": "application/vnd.integrate.v1.9.0+json"
+    }
+    body = {
+        "to": to_number,
+        "from": from_number,
+    }
+    resp = requests.post(url, json=body, headers=headers)
+    try:
+        resp.raise_for_status()
+    except requests.HTTPError as e:
+        print("❌ Error al realizar la llamada:")
+        print(f"Status code: {resp.status_code}")
+        print(f"Response: {resp.text}")
+        raise
+    return resp.json()
+
+
+if __name__ == "__main__":
+    try:
+        token = get_token()
+        print("✅ Token obtenido:", token)
+
+        result = make_call(token, "234802005", "945854758")
+        print("📞 Llamada iniciada, respuesta API:", result)
+    except requests.HTTPError as e:
+        print("❌ Error en la ejecución. Consulta los detalles arriba.")

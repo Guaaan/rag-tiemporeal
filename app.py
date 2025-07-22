@@ -11,7 +11,6 @@ from azure_tts import Client as AzureTTSClient
 from tools import search_knowledge_base_handler, report_grounding_handler, tools
 from msal import ConfidentialClientApplication
 from typing import Optional, Dict
-import call
 
 AZURE_CLIENT_ID = os.environ.get("AZURE_CLIENT_ID")
 AZURE_TENANT_ID = os.environ.get("AZURE_TENANT_ID")
@@ -132,17 +131,6 @@ def oauth_callback(
 
 @cl.on_chat_start
 async def on_chat_start():
-    # Si no hay token, realiza autenticación
-    token = cl.user_session.get("net2phone_token")
-    if not token:
-        try:
-            await cl.Message("🔐 Autenticando con Net2Phone...").send()
-            token = call.authenticate()
-            cl.user_session.set("net2phone_token", token)
-            await cl.Message("✅ Autenticación completada!").send()
-        except Exception as e:
-            await cl.Message(f"❌ Error en autenticación: {e}").send()
-            return
 
     # Continua con el resto de tu lógica: Azure, TTS, agente, etc.
     await cl.Message("¡Todo listo! ¿En qué te puedo ayudar?").send()
@@ -194,10 +182,20 @@ async def setup_agent(settings):
 async def on_message(message: cl.Message):
     openai_realtime: RealtimeClient = cl.user_session.get("openai_realtime")
     if openai_realtime and openai_realtime.is_connected():
+        # Buscar información relevante en la KB
         search_results = await search_knowledge_base_handler(message.content)
+
+        # Pasar la información como contexto
         context = f"Información relevante:\n{search_results}\n\n"
-        context += "Por favor, responde basándote en esta información y cita las fuentes usando report_grounding."
+        context += (
+            "Si detectas que el usuario solicita realizar una llamada al contacto de emergencia, "
+            "utiliza la herramienta `make_phone_call` con el número de teléfono encontrado en la base de conocimientos "
+            "y opcionalmente el nombre del contacto."
+        )
+
+        # Enviar el mensaje al modelo
         await openai_realtime.send_message(content=message.content, context=context)
+
 @cl.on_audio_start
 async def on_audio_start():
     try:
