@@ -1,132 +1,149 @@
-Title: Realtime Assistant
-Tags: [multimodal, audio]
+# Realtime Assistant - README Oficial
 
-# From Zero to Hero: Building Your First Voice Bot with GPT-4o Real-Time API using Python
+## 1. Descripción general
 
-Voice technology is transforming how we interact with machines, making conversations with AI feel more natural than ever before. With the public beta release of the Realtime API powered by GPT-4o, developers now have the tools to create low-latency, multimodal voice experiences in their apps, opening up endless possibilities for innovation.
+Realtime Assistant es un asistente de voz en tiempo real basado en la API GPT-4o de OpenAI, diseñado para ofrecer experiencias multimodales de conversación natural, integrando voz y texto, con capacidades de búsqueda, grounding y ejecución de herramientas externas. El proyecto está optimizado para ejecutarse tanto localmente como en contenedores Docker y puede integrarse fácilmente con servicios de Azure. Sus principales casos de uso incluyen atención al cliente, educación, traducción en tiempo real y automatización de tareas por voz.
 
-Gone are the days when building a voice bot required stitching together multiple models for transcription, inference, and text-to-speech conversion. With the Realtime API, developers can now streamline the entire process with a single API call, enabling fluid, natural speech-to-speech conversations. This is a game-changer for industries like customer support, education, and real-time language translation, where fast, seamless interactions are crucial.
+## 2. Arquitectura del Proyecto
 
-## Key Features
+- **app.py**: Orquestador principal. Gestiona la interacción con Chainlit, la autenticación con Azure AD, la selección de voz, la lógica de conversación y la integración de herramientas.
+- **azure_tts.py**: Cliente para Azure Text-to-Speech. Permite la síntesis de voz en múltiples idiomas y la configuración dinámica de voces.
+- **tools.py**: Utilidades para búsqueda en Azure Cognitive Search, integración con Net2Phone, manejo de tokens y logs.
+- **realtime/**: Cliente para la API Realtime de OpenAI. Maneja la comunicación WebSocket, el procesamiento de audio y la detección de actividad de voz (VAD).
+- **VAD/vad_iterator.py**: Implementación de Voice Activity Detection para segmentar audio en tiempo real y mejorar la experiencia conversacional.
 
-- **Realtime Python Client**: Based off https://github.com/openai/openai-realtime-api-beta
-- **Multimodal experience**: Speak and write to the assistant at the same time
-- **Tool calling**: Ask the assistant to perform tasks and see their output in the UI
-- **Visual Presence**: Visual cues indicating if the assistant is listening or speaking
+## 3. Configuración del archivo `.env`
 
-Plead read my Blog for more details https://techcommunity.microsoft.com/t5/ai-azure-ai-services-blog/from-zero-to-hero-building-your-first-voice-bot-with-gpt-4o-real/ba-p/4269038
+Crea un archivo `.env` en la raíz del proyecto con el siguiente contenido y reemplaza los valores según tu configuración:
 
+```
+AZURE_OPENAI_API_KEY=XXXX
+# Tu clave de API de Azure OpenAI
 
-The following files are also included in the repository:
-- requirements.txt: Lists the required Python packages.
-- Dockerfile: Used to build a Docker image for the application.
-- .env: Contains the environment variables.
-- build-docker-image.sh: A script to build the Docker image.
-- run-docker-image.sh: A script to run the Docker image locally.
-- push-docker-image.sh: A script to push the Docker image to an Azure Container Registry
-- variables.sh: contains the variables for the Azure Container Registry, and the Docker image.
+AZURE_OPENAI_ENDPOINT=wss://xxxx.openai.azure.com/
+# Endpoint de Azure OpenAI
 
-## Quickstart
+AZURE_OPENAI_DEPLOYMENT=gpt-4o-realtime-preview
+# Nombre del deployment del modelo GPT-4o
 
-### Prerequisites:
-- An active [Azure Subscription](https://learn.microsoft.com/en-us/azure/guides/developer/azure-developer-guide#understanding-accounts-subscriptions-and-billing). If you don't have one, create a [free Azure account](https://azure.microsoft.com/en-gb/free/) before you begin.
-- [VS Code](https://code.visualstudio.com/) as a code editor.
-- [Docker](https://www.docker.com/) installed on your local machine.
-- [Azure CLI](https://docs.microsoft.com/en-us/cli/azure/install-azure-cli) installed on your local machine.
-- [Azure OpenAI account](https://azure.microsoft.com/en-us/services/cognitive-services/openai/). You will need to create a resource and obtain your OpenAI Endpoint, API Key, deploy text-embedding-ada-002 and gpt-35-turbo-16k model.
-- Python 3.11 or higher installed on your local machine.
-- (Optional) [Azure Container Registry](https://docs.microsoft.com/en-us/azure/container-registry/) to store the Docker image. This step is optional, if you want to deploy the application to Azure Container Apps for example.
+AZURE_OPENAI_CHAT_DEPLOYMENT_VERSION=2024-10-01-preview
+# Versión del deployment (por defecto, no es necesario cambiarlo)
 
-### Setup the environment variables
+AZURE_SEARCH_ENDPOINT=your_azure_search_endpoint
+# Endpoint de Azure Cognitive Search
 
-1. Create an .env file and update the following environment variables:
+AZURE_SEARCH_KEY=your_azure_search_key
+# Clave de Azure Cognitive Search
 
-    ```
-        AZURE_OPENAI_API_KEY=XXXX
-        # replace with your Azure OpenAI API Key
+INDEX_NAME=your_index_name
+# Nombre del índice de búsqueda
 
-        AZURE_OPENAI_ENDPOINT=wss://xxxx.openai.azure.com/
-        # replace with your Azure OpenAI Endpoint
+CHAINLIT_AUTH_SECRET=your_chainlit_auth_secret
+# Secreto de autenticación para Chainlit (usa `chainlit create-secret` para generarlo)
 
-        AZURE_OPENAI_DEPLOYMENT=gpt-4o-realtime-preview
-        #Create a deployment for the gpt-4o-realtime-preview model and place the deployment name here. You can name the deployment as per your choice and put the name here.
+AZURE_SPEECH_KEY=your_azure_speech_key
+# Clave de Azure Speech (Text-to-Speech)
 
-        AZURE_OPENAI_CHAT_DEPLOYMENT_VERSION=2024-10-01-preview
-        #You don't need to change this unless you are willing to try other versions.
+AZURE_SPEECH_REGION=your_azure_speech_region
+# Región de Azure Speech
 
-        AZURE_SEARCH_ENDPOINT=your_azure_search_endpoint
-        # replace with your Azure Search Endpoint
+# Opcionales para autenticación Azure AD
+AZURE_CLIENT_ID=your_azure_client_id
+AZURE_TENANT_ID=your_azure_tenant_id
+AZURE_CLIENT_SECRET=your_azure_client_secret
+REDIRECT_URI=https://your-redirect-uri
 
-        AZURE_SEARCH_KEY=your_azure_search_key
-        # replace with your Azure Search Key
+# Opcionales para Net2Phone
+NET2PHONE_CLIENT_ID=your_n2p_client_id
+NET2PHONE_API_BASE_URL=https://api.n2p.io
+NET2PHONE_USERNAME=tu_usuario
+NET2PHONE_PASSWORD=tu_contraseña
+```
 
-        INDEX_NAME=your_index_name
-        # replace with your index name
+## 4. Instalación y ejecución
 
-        CHAINLIT_AUTH_SECRET=your_chainlit_auth_secret
-        # replace with your Chainlit auth secret create it using `chainlit create-secret`
+### Requisitos previos
+- Suscripción activa de [Azure](https://azure.microsoft.com/en-gb/free/)
+- [VS Code](https://code.visualstudio.com/)
+- [Docker](https://www.docker.com/)
+- [Azure CLI](https://docs.microsoft.com/en-us/cli/azure/install-azure-cli)
+- [Azure OpenAI](https://azure.microsoft.com/en-us/services/cognitive-services/openai/)
+- Python 3.11 o superior
+- (Opcional) [Azure Container Registry](https://docs.microsoft.com/en-us/azure/container-registry/)
 
-        AZURE_SPEECH_KEY=your_azure_speech_key
-        # replace with your Azure Speech Key
+### Instalación de dependencias
 
-        AZURE_SPEECH_REGION=your_azure_speech_region
-        # replace with your Azure Speech Region
-    ```
+```bash
+pip install -r requirements.txt
+```
 
-Once you have updated the .env file, please save the changes and you are ready to proceed to the next step.
+### Ejecución local
 
-### Option 1: Run the application locally
+```bash
+chainlit run app.py -w
+```
 
-1. Install dependencies: 
-Open the terminal and navigate to the src folder of the repository. Then run the following command to install the necesairly Python packages:
+Accede a la aplicación en [http://localhost:8000/](http://localhost:8000/)
 
-    ```pip
-    pip install -r requirements.txt
-    ```
+### Ejecución en Docker
 
-2. Run the application: Run the following command to start the application:
+1. Ajusta el archivo `build-docker-image.sh` según la arquitectura de tu máquina (linux/arm64 o linux/amd64).
+2. Construye la imagen:
+   ```bash
+   ./build-docker-image.sh
+   ```
+3. Ejecuta el contenedor:
+   ```bash
+   ./run-docker-image.sh
+   ```
+4. Accede a la aplicación en [http://localhost:8000/](http://localhost:8000/)
 
-    ```chainlit
-     chainlit run app.py -w
-    ```
-3. Test the application: Open a new terminal and run the following command to test the application:
+### (Opcional) Publicar en Azure Container Registry
 
-    ```chainlit
-     http://localhost:8000/
-    ```
+1. Actualiza `variables.sh` con los datos de tu registro e imagen.
+2. Inicia sesión en Azure:
+   ```bash
+   az login
+   ```
+3. Publica la imagen:
+   ```bash
+   ./push-docker-image.sh
+   ```
 
-### Option 2: Run the application in a Docker container
+## 5. Uso general
 
-1. Navigate to the src folder of the repository
+- Puedes interactuar con el asistente tanto por voz como por texto.
+- El sistema soporta cambio de idioma y selección de voz.
+- Permite búsquedas en bases de conocimiento y ejecución de herramientas externas (Net2Phone, grounding, etc.).
+- Visualiza en tiempo real si el asistente está escuchando o hablando.
 
-2. Open the file build-docker-image.sh and depending on the architecture of your local machine (linux/arm64 or linux/amd64), uncomment the respective line and comment the other line. Then save the file. In my case I built the image to run it locally on my M1 Mac, so I have uncommented the line for linux/arm64 and commented the line for linux/amd64. If you plan to build the image for a different architecture, you can uncomment the respective line and comment the other line.
+### Ejemplo de flujo de conversación
+1. El usuario inicia la conversación por voz o texto.
+2. El asistente responde usando la voz seleccionada y puede citar fuentes o realizar llamadas si se solicita.
+3. El usuario puede pedir búsquedas, grounding o realizar una llamada de emergencia.
 
-3. Run the following command to build the Docker image:
+### Herramientas disponibles
+- **search_knowledge_base**: Busca información en la base de conocimientos.
+- **report_grounding**: Devuelve detalles de las fuentes citadas.
+- **make_phone_call**: Realiza una llamada al contacto de emergencia usando Net2Phone.
 
-    ```build-docker-image
-     ./build-docker-image.sh
-    ```
-4. Run the following command to run the Docker image:
+## 6. Estructura de carpetas y archivos
 
-    ```run-docker-image
-     ./run-docker-image.sh
-    ```
-5. Test the application: Open a new terminal and run the following command to test the application:
+- `app.py`: Lógica principal y punto de entrada.
+- `azure_tts.py`: Cliente de síntesis de voz.
+- `tools.py`: Utilidades y herramientas externas.
+- `realtime/`: Cliente de API Realtime y procesamiento de audio.
+- `VAD/`: Detección de actividad de voz.
+- `public/`: Archivos estáticos para la interfaz.
+- `requirements.txt`: Dependencias Python.
+- `Dockerfile`, `compose.yaml`: Contenedores y despliegue.
+- Scripts `.sh`: Automatización de build, run y push.
 
-    ```chainlit
-     http://localhost:8000/
-    ```
+## 7. Contribución y soporte
 
-6. (optional) Push the Docker image to an Azure Container Registry
+- Para contribuir, abre un issue o pull request en el repositorio.
+- Para soporte, consulta la documentación oficial de Azure y OpenAI, o contacta al mantenedor del proyecto.
 
-    If you want to deploy the application to Azure, you can push the Docker image to an Azure Container Registry. To do this, you need to have an Azure Container Registry and the Docker image name and the Azure Container Registry name in the variables.sh file. Once you have updated the variables.sh file, run the following Azure CLI command to connect to your Azure Subscription:
-    
-    ```azure
-    az login
-    ```
+---
 
-    Then run the following command to push the Docker image to the Azure Container Registry:
-
-    ```push-docker-image
-    ./push-docker-image.sh
-    ```
+© 2025 Realtime Assistant. Proyecto open source bajo licencia MIT.
