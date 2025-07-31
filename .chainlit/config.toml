@@ -12,6 +12,13 @@ chatbot_name = "Asistente ITAM"
 # If you want to use authentication, set this to true.
 enabled = true
 
+[oauth_providers.azure-ad]
+client_id = "${AZURE_CLIENT_ID}"
+client_secret = "${AZURE_CLIENT_SECRET}"
+authorize_url = "https://login.microsoftonline.com/${AZURE_TENANT_ID}/oauth2/v2.0/authorize"
+access_token_url = "https://login.microsoftonline.com/${AZURE_TENANT_ID}/oauth2/v2.0/token"
+user_info_url = "https://graph.microsoft.com/v1.0/me"
+scopes = ["User.Read"]
 
 # List of environment variables to be provided by each user to use the app.
 user_env = ["AZURE_OPENAI_API_KEY"]
