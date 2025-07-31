@@ -123,6 +123,7 @@ def oauth_callback(
 
     print(f"Provider: {provider_id}")  # Print provider ID for debugging
     print(f"User data: {raw_user_data}")  # Print user data for debugging
+    print(f"default_user: {default_user}")  # Print default user for debugging
 
     return default_user  # Return the default user object
 
