@@ -162,17 +162,22 @@ async def on_chat_start():
 async def setup_agent(settings):
     system_prompt = (
         "Eres un asistente de voz de la compañía ITAM. "
-        "Tienes acceso a la base de conocimientos interna, incluyendo empleados, contactos de emergencia, dirección y currículum. "
-        "Antes de responder a cualquier pregunta, busca información relevante en la base de conocimientos. "
-        "Si no encuentras información relevante, indícalo. "
-        "Responde siempre en español. "
-        "Si el usuario solicita realizar una llamada a un contacto de emergencia, puedes gestionarla automáticamente."
+        "Debes usar SIEMPRE la herramienta de búsqueda en la base de conocimientos antes de responder cualquier pregunta sobre la empresa, empleados, contactos o información interna. "
+        "Cuando utilices información de la base de conocimientos, cita las fuentes relevantes en tu respuesta. "
+        "Solo debes usar la herramienta de llamada telefónica si el usuario lo solicita explícitamente. "
+        "Responde SIEMPRE en español, incluso si la pregunta está en otro idioma. "
+        "Si no encuentras información relevante en la base de conocimientos, indícalo de forma clara y sugiere al usuario reformular su pregunta. "
+        "Ejemplos de uso de herramientas: "
+        "- Si el usuario pregunta: '¿Cuál es el contacto de emergencias de Juan Pérez?', primero busca en la base de conocimientos y responde citando la fuente. "
+        "- Si el usuario dice: 'Llama al contacto de emergencia de Juan Pérez', primero busca el número en la base de conocimientos y luego usa la herramienta de llamada. "
+        "- Si el usuario pregunta información general de la empresa, busca siempre en la base de conocimientos antes de responder. "
     )
     cl.user_session.set("useAzureVoice", settings["useAzureVoice"])
     cl.user_session.set("Temperature", settings["Temperature"])
     cl.user_session.set("Language", settings["Language"])
     await cl.Message(
-        content="Hola Bienvenido al bot conversacional de ITAM. Puedo brindarte información sobre los contactos de emergencia de algún empleado o información general de la compañía. Presiona `P` para hablar! Prueba preguntarme cual es el contacto de emergencias de un empleado. "
+        # content="Hola, bienvenido al bot conversacional de ITAM. Puedes cambiar el idioma de la voz, pero siempre responderé en español. Puedo brindarte información sobre los contactos de emergencia de algún empleado o información general de la compañía. Presiona `P` para hablar. Ejemplo: '¿Cuál es el contacto de emergencias de Juan Pérez?'"
+        content="Hola Bienvenido al bot conversacional de ITAM. Puedo brindarte información sobre los contactos de emergencia de algún empleado o información general de la compañía. Presiona `P` para hablar! Prueba preguntarme cual es el contacto de emergencias de un empleado."
     ).send()
     system_prompt = system_prompt.replace(
         "<customer_language>", settings["Language"])
@@ -186,6 +191,13 @@ async def on_message(message: cl.Message):
     if openai_realtime and openai_realtime.is_connected():
         # Buscar información relevante en la KB
         search_results = await search_knowledge_base_handler(message.content)
+
+        # Si no hay resultados, sugerir reformular
+        if search_results.strip() == "No se encontraron resultados":
+            await cl.Message(
+                content="No se encontró información relevante para tu consulta. Por favor, intenta reformular tu pregunta o consulta ejemplos como: '¿Quién es el responsable de emergencias?', '¿Cuál es el contacto de emergencias de Juan Pérez?', '¿Dónde queda la oficina principal?'."
+            ).send()
+            # Aún así, pasar el contexto vacío al modelo para mantener el flujo
 
         # Pasar la información como contexto
         context = f"Información relevante:\n{search_results}\n\n"

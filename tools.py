@@ -1,3 +1,10 @@
+# ------------------- 🧩 Mensajes centralizados -------------------
+
+SUCCESS_CALL_MSG = "✅ La llamada al contacto '{contact_name}' ({phone}) fue iniciada correctamente. Pronto recibirás la comunicación."
+ERROR_CALL_MSG = "❌ No se pudo realizar la llamada al contacto '{contact_name}' ({phone}). Por favor, verifica el número o intenta más tarde."
+GENERIC_ERROR_MSG = "Ocurrió un error al intentar realizar la llamada. Por favor, intenta nuevamente más tarde."
+NO_RESULTS_MSG = "No se encontraron resultados"
+ERROR_SEARCH_MSG = "Error buscando información"
 import os
 import logging
 import requests
@@ -143,23 +150,25 @@ async def make_phone_call_handler(phone_number: str, contact_name: str = "Contac
         resp = requests.post(f"{NET2PHONE_API_BASE_URL}/v1/calls/", headers=headers, json=payload, timeout=10)
 
         if resp.status_code in (200, 201):
-            print(f"📞 Llamada iniciada a {contact_name} ({phone})")
+            logger.info(f"Llamada iniciada correctamente a {contact_name} ({phone})")
+            user_message = SUCCESS_CALL_MSG.format(contact_name=contact_name, phone=phone)
             return {
                 "status": "success",
-                "message": f"Llamada iniciada a {contact_name} ({phone})",
+                "message": user_message,
                 "details": resp.json()
             }
         else:
-            print(f"❌ Error al realizar la llamada: {resp.status_code} - {resp.text}")
+            logger.warning(f"Fallo al realizar la llamada: {resp.status_code} - {resp.text}")
+            user_message = ERROR_CALL_MSG.format(contact_name=contact_name, phone=phone)
             return {
                 "status": "error",
-                "message": resp.text,
+                "message": user_message,
                 "code": resp.status_code
             }
 
     except Exception as e:
         logger.error(f"Error realizando la llamada: {e}")
-        return {"status": "error", "message": str(e)}
+        return {"status": "error", "message": GENERIC_ERROR_MSG}
 
 # ------------------- 🔍 Búsqueda -------------------
 
@@ -189,11 +198,16 @@ async def search_knowledge_base_handler(query: str) -> str:
         async for r in search_results:
             results.append(f"[{r[IDENTIFIER_FIELD]}] {r[TITLE_FIELD]}: {r[CONTENT_FIELD]}")
 
-        return "\n---\n".join(results) if results else "No se encontraron resultados"
+        if results:
+            logger.info(f"Búsqueda exitosa para query: {query}")
+            return "\n---\n".join(results)
+        else:
+            logger.info(f"Sin resultados para query: {query}")
+            return NO_RESULTS_MSG
 
     except Exception as e:
         logger.error(f"Error en la búsqueda: {e}")
-        return "Error buscando información"
+        return ERROR_SEARCH_MSG
 
 # ------------------- 📑 Grounding -------------------
 
@@ -229,13 +243,24 @@ async def report_grounding_handler(sources: List[str]) -> Dict[str, Any]:
 
 # ------------------- 🧰 Definición de herramientas -------------------
 
+
 search_tool_def = {
     "name": "search_knowledge_base",
-    "description": "Busca información en la base de conocimientos sobre ITAM.",
+    "description": (
+        "Busca información relevante en la base de conocimientos interna de ITAM. "
+        "Utiliza esta herramienta SIEMPRE antes de responder preguntas sobre empleados, contactos, información general o emergencias. "
+        "Ejemplo de uso: Si el usuario pregunta '¿Cuál es el contacto de emergencias de Juan Pérez?', usa esta herramienta con la consulta 'contacto de emergencias de Juan Pérez'."
+    ),
     "parameters": {
         "type": "object",
         "properties": {
-            "query": {"type": "string", "description": "Consulta de búsqueda"}
+            "query": {
+                "type": "string",
+                "description": (
+                    "Consulta de búsqueda. Escribe aquí exactamente lo que el usuario quiere saber. "
+                    "Ejemplo: 'contacto de emergencias de Juan Pérez'"
+                )
+            }
         },
         "required": ["query"]
     }
@@ -243,14 +268,21 @@ search_tool_def = {
 
 grounding_tool_def = {
     "name": "report_grounding",
-    "description": "Devuelve las fuentes usadas en la respuesta.",
+    "description": (
+        "Devuelve detalles de las fuentes citadas en la respuesta. "
+        "Utiliza esta herramienta para mostrar al usuario de dónde proviene la información que le diste. "
+        "Ejemplo de uso: Si tu respuesta incluye datos de la base de conocimientos, usa esta herramienta para citar las fuentes."
+    ),
     "parameters": {
         "type": "object",
         "properties": {
             "sources": {
                 "type": "array",
                 "items": {"type": "string"},
-                "description": "Identificadores de las fuentes"
+                "description": (
+                    "Lista de identificadores de las fuentes utilizadas en la respuesta. "
+                    "Ejemplo: ['chunk_123', 'chunk_456']"
+                )
             }
         },
         "required": ["sources"]
@@ -259,17 +291,24 @@ grounding_tool_def = {
 
 call_tool_def = {
     "name": "make_phone_call",
-    "description": "Realiza una llamada al contacto de emergencia.",
+    "description": (
+        "Realiza una llamada telefónica al contacto de emergencia especificado. "
+        "Usa esta herramienta SOLO si el usuario lo solicita explícitamente. "
+        "Ejemplo de uso: Si el usuario dice 'Llama al contacto de emergencia de Juan Pérez', primero busca el número y luego usa esta herramienta."
+    ),
     "parameters": {
         "type": "object",
         "properties": {
             "phone_number": {
                 "type": "string",
-                "description": "Número en formato internacional (+56...) deberá ."
+                "description": (
+                    "Número de teléfono en formato internacional (ejemplo: +56912345678). "
+                    "Debes buscar este número en la base de conocimientos antes de llamar."
+                )
             },
             "contact_name": {
                 "type": "string",
-                "description": "Nombre del contacto (opcional)"
+                "description": "Nombre del contacto al que se llamará (opcional)."
             }
         },
         "required": ["phone_number"]
