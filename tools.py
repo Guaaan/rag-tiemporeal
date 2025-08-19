@@ -24,9 +24,10 @@ INDEX_NAME = os.environ.get("INDEX_NAME")
 SEMANTIC_CONFIG = os.getenv("AZURE_SEARCH_SEMANTIC_CONFIG")
 USE_VECTOR_SEARCH = os.getenv("USE_VECTOR_SEARCH", "false").lower() == "true"
 
-IDENTIFIER_FIELD = "chunk_id"
-CONTENT_FIELD = "chunk"
-TITLE_FIELD = "title"
+IDENTIFIER_FIELD = "metadata_storage_path"   # ID único
+CONTENT_FIELD = "content"                    # texto del documento
+TITLE_FIELD = "metadata_storage_name"        # nombre del archivo
+
 EMBEDDING_FIELD = "embedding"
 
 # Configuración de logs
