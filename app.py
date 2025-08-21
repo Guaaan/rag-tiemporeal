@@ -23,7 +23,6 @@ msal_app = ConfidentialClientApplication(
     AZURE_CLIENT_ID,
     authority=AUTHORITY,
     client_credential=AZURE_CLIENT_SECRET,
-    redirect_uri=REDIRECT_URI
 )
 
 voice = "es-AR-AlloyTurboMultilingualNeural"
