@@ -19,6 +19,7 @@ authorize_url = "https://login.microsoftonline.com/${AZURE_TENANT_ID}/oauth2/v2.
 access_token_url = "https://login.microsoftonline.com/${AZURE_TENANT_ID}/oauth2/v2.0/token"
 user_info_url = "https://graph.microsoft.com/v1.0/me"
 scopes = ["User.Read"]
+redirect_uri = "https://voxbotitam.chilecentral.cloudapp.azure.com/auth/oauth/azure-ad/callback"
 
 # List of environment variables to be provided by each user to use the app.
 user_env = ["AZURE_OPENAI_API_KEY"]
