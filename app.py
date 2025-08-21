@@ -22,7 +22,8 @@ REDIRECT_URI = os.environ.get("REDIRECT_URI", "https://itambotdevoz.eastus2.clou
 msal_app = ConfidentialClientApplication(
     AZURE_CLIENT_ID,
     authority=AUTHORITY,
-    client_credential=AZURE_CLIENT_SECRET
+    client_credential=AZURE_CLIENT_SECRET,
+    redirect_uri=REDIRECT_URI
 )
 
 voice = "es-AR-AlloyTurboMultilingualNeural"
