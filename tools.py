@@ -24,11 +24,11 @@ INDEX_NAME = os.environ.get("INDEX_NAME")
 SEMANTIC_CONFIG = os.getenv("AZURE_SEARCH_SEMANTIC_CONFIG")
 USE_VECTOR_SEARCH = os.getenv("USE_VECTOR_SEARCH", "false").lower() == "true"
 
-IDENTIFIER_FIELD = "metadata_storage_path"   # ID único
-CONTENT_FIELD = "content"                    # texto del documento
-TITLE_FIELD = "metadata_storage_name"        # nombre del archivo
+IDENTIFIER_FIELD = "chunk_id"   # ID único
+CONTENT_FIELD = "chunk"         # texto del documento
+TITLE_FIELD = "title"           # título del chunk
 
-EMBEDDING_FIELD = "embedding"
+EMBEDDING_FIELD = "text_vector" # campo vectorial
 
 # Configuración de logs
 logging.basicConfig(level=logging.INFO)
@@ -178,14 +178,24 @@ async def search_knowledge_base_handler(query: str) -> str:
             ))
 
         results = []
-        search_results = await search_client.search(
-            search_text=query,
-            query_type="semantic" if SEMANTIC_CONFIG else "simple",
-            semantic_configuration_name=SEMANTIC_CONFIG,
-            top=5,
-            vector_queries=vector_queries,
-            select=f"{IDENTIFIER_FIELD},{TITLE_FIELD},{CONTENT_FIELD}"
-        )
+        if USE_VECTOR_SEARCH:
+            # Solo vector search, nunca semantic
+            search_results = await search_client.search(
+                search_text=query,
+                query_type="simple",
+                top=5,
+                vector_queries=vector_queries,
+                select=f"{IDENTIFIER_FIELD},{TITLE_FIELD},{CONTENT_FIELD},parent_id"
+            )
+        else:
+            # Solo semantic si está habilitado
+            search_results = await search_client.search(
+                search_text=query,
+                query_type="semantic" if SEMANTIC_CONFIG else "simple",
+                semantic_configuration_name=SEMANTIC_CONFIG if SEMANTIC_CONFIG else None,
+                top=5,
+                select=f"{IDENTIFIER_FIELD},{TITLE_FIELD},{CONTENT_FIELD},parent_id"
+            )
 
         async for r in search_results:
             results.append(f"[{r[IDENTIFIER_FIELD]}] {r[TITLE_FIELD]}: {r[CONTENT_FIELD]}")
